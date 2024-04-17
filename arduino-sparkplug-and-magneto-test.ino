@@ -20,10 +20,45 @@ void setup() {
 }
 
 void loop() {
-  delay(100);
-
   receiveBtData();
   startSparkPlugTest();
+
+  delay(100);
+}
+
+void startSparkPlugTest() {
+  if (!shouldStartSparkPlugTest) return;
+
+  // read from the connected spark plug pin
+  int inputState = digitalRead(SPARK_PLUG_PIN);
+
+  if (inputState == LOW) {
+    String data = "P";
+    digitalWrite(LED_PIN, HIGH);
+    sendBtData(data);
+    // Serial.println(data);
+  } else {
+    String data = "F";
+    digitalWrite(LED_PIN, LOW);
+    sendBtData(data);
+    // Serial.println(data);
+  }
+
+  delay(2000);
+}
+
+void startMagnetoTest() {
+  if (!shouldStartMagnetoTest) return;
+  
+  // TODO add magneto test code here
+}
+
+//////////////////////
+// HELPER FUNCTIONS //
+//////////////////////
+
+void sendBtData(String data) {
+  bluetooth.write(data.c_str());
 }
 
 void receiveBtData() {
@@ -36,26 +71,18 @@ void receiveBtData() {
     return;
   } else {
     // Serial.println(rawCommand);
-    runCommand();
+
+    String command = rawCommand.substring(2);
+    char module = rawCommand.charAt(0);
+    runCommand(command, module);
+
+    // clear
     rawCommand = "";
   }
 }
 
-void runCommand() {
-  String command = rawCommand.substring(2);
-  char target = rawCommand.charAt(0);
-
-  switch (target) {
-    case 'L':
-      // LED test
-      if (command == "ON") {
-        digitalWrite(LED_PIN, HIGH);
-      }
-
-      if (command == "OFF") {
-        digitalWrite(LED_PIN, LOW);
-      }
-      break;
+void runCommand(String command, char module) {
+  switch (module) {
     case 'S':
       // Spark plug test
       if (command == "START") {
@@ -64,6 +91,7 @@ void runCommand() {
 
       if (command == "STOP") {
         shouldStartSparkPlugTest = false;
+        digitalWrite(LED_PIN, LOW);
       }
       break;
     case 'M':
@@ -79,36 +107,4 @@ void runCommand() {
     default:
       break;
   }
-}
-
-void sendBtData(String data) {
-  if (!bluetooth.available()) return;
-
-  // this sends string data as bytes
-  bluetooth.write(data.c_str());
-}
-
-void startSparkPlugTest() {
-  if (!shouldStartSparkPlugTest) return;
-
-  // read from the connected spark plug pin
-  int inputState = digitalRead(SPARK_PLUG_PIN);
-
-  if (inputState == LOW) {
-    // Serial.println("PASS");
-    sendBtData("PASS");
-    digitalWrite(LED_PIN, HIGH);
-  } else {
-    // Serial.println("FAIL");
-    sendBtData("FAIL");
-    digitalWrite(LED_PIN, LOW);
-  }
-
-  delay(2000);
-}
-
-void startMagnetoTest() {
-  if (!shouldStartMagnetoTest) return;
-  
-  // TODO add magneto test code here
 }
