@@ -137,7 +137,7 @@ void runCommand(String command, char module) {
 
         lcd.clear();
         lcd.setCursor(0,0);
-        lcd.print("  Spark Plug");
+        lcd.print("  Magneto");
       }
 
       if (command == "STOP") {
