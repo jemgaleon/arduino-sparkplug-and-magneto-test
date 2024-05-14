@@ -1,5 +1,5 @@
 #include <SoftwareSerial.h>
-#include <LiquidCrystal_I2C.h>
+// #include <LiquidCrystal_I2C.h>
 
 #define BTXD_PIN 12 // rxd in the board
 #define BRXD_PIN 13 // txd in the board
@@ -7,7 +7,7 @@
 int IR_PIN = 3;
 
 SoftwareSerial bluetooth(BRXD_PIN, BTXD_PIN);
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+// LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 String rawCommand = "";
 boolean shouldStartSparkPlugTest = false;
@@ -23,10 +23,10 @@ void setup() {
   Serial.begin(9600);
   bluetooth.begin(9600);
 
-  pinMode(SPARK_PLUG_PIN, INPUT_PULLUP);
+  pinMode(SPARK_PLUG_PIN, INPUT);
 
-  lcd.init();
-  lcd.backlight();
+  // lcd.init();
+  // lcd.backlight();
 
   attachInterrupt(digitalPinToInterrupt(IR_PIN), interrupt, RISING);
 }
@@ -45,18 +45,20 @@ void startSparkPlugTest() {
   // read from the connected spark plug pin
   int inputState = digitalRead(SPARK_PLUG_PIN);
 
+  if (inputState == HIGH) {
+    String data = "P"; // Pass
+    sendBtData(data);
+
+    // lcd.setCursor(0,1);
+    // lcd.print("PASS");
+  }
+
   if (inputState == LOW) {
-    String data = "P";
+    String data = "F"; // Fail
     sendBtData(data);
 
-    lcd.setCursor(0,1);
-    lcd.print("PASS");
-  } else {
-    String data = "F";
-    sendBtData(data);
-
-    lcd.setCursor(0,1);
-    lcd.print("FAIL");
+    // lcd.setCursor(0,1);
+    // lcd.print("FAIL");
   }
 
   delay(2000);
@@ -71,11 +73,11 @@ void startMagnetoTest() {
   PREVIOUS = millis();
   REV = 0;
   
-  lcd.setCursor(0,1);
-  lcd.print("RPM");
-  lcd.setCursor(5,1);
-  lcd.print(RPM_VALUE);
-  lcd.print("     ");
+  // lcd.setCursor(0,1);
+  // lcd.print("RPM");
+  // lcd.setCursor(5,1);
+  // lcd.print(RPM_VALUE);
+  // lcd.print("     ");
 
   sendBtData(String(RPM_VALUE));
 
@@ -119,15 +121,15 @@ void runCommand(String command, char module) {
       if (command == "START") {
         shouldStartSparkPlugTest = true;
 
-        lcd.clear();
-        lcd.setCursor(0,0);
-        lcd.print("  Spark Plug");
+        // lcd.clear();
+        // lcd.setCursor(0,0);
+        // lcd.print("  Spark Plug");
       }
 
       if (command == "STOP") {
         shouldStartSparkPlugTest = false;
 
-        lcd.clear();
+        // lcd.clear();
       }
       break;
     case 'M': // Magneto
@@ -135,15 +137,15 @@ void runCommand(String command, char module) {
       if (command == "START") {
         shouldStartMagnetoTest = true;
 
-        lcd.clear();
-        lcd.setCursor(0,0);
-        lcd.print("  Magneto");
+        // lcd.clear();
+        // lcd.setCursor(0,0);
+        // lcd.print("  Magneto");
       }
 
       if (command == "STOP") {
         shouldStartMagnetoTest = false;
 
-        lcd.clear();
+        // lcd.clear();
       }
       break;
     default:
